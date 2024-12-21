@@ -2,5 +2,5 @@
 
 python3 setup.py develop
 python3 setup.py sdist
-twine upoload dist/*
+twine upload dist/*
 

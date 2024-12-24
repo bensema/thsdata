@@ -9,7 +9,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
 
-VERSION = '0.0.12'
+VERSION = '0.0.16'
 DESCRIPTION = 'a python package for ... '
 LONG_DESCRIPTION = ' a python package for ...  '
 

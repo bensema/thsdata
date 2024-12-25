@@ -34,7 +34,7 @@ class ThsQuote:
         short_code = code[4:]
         req = f"id=207&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&datatype={data_type}&date={date}"
         response = self.quotelib.query_data(req)
-        if response == "":
+        if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
 
         reply = Reply(response)
@@ -82,7 +82,7 @@ class ThsQuote:
         short_code = code[4:]
         req = f"id=210&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&fuquan={fuquan}&datatype={data_type}&period={period}"
         response = self.quotelib.query_data(req)
-        if response == "":
+        if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
 
         reply = Reply(response)
@@ -154,7 +154,7 @@ class ThsQuote:
         zipVersion = ZipVersion
         req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&blockid={block_id:x}&reqflag=blockserver"
         response = self.quotelib.query_data(req)
-        if response == "":
+        if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
 
         reply = Reply(response)
@@ -170,8 +170,91 @@ class ThsQuote:
         zipVersion = ZipVersion
         req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&linkcode={block_code}"
         response = self.quotelib.query_data(req)
-        if response == "":
+        if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
+
+        reply = Reply(response)
+        reply.convert_data()
+
+        return reply
+
+    def get_transaction_data(self, code: str, start: int, end: int):
+        """
+        获取股票3秒tick成交数据
+        :param code: 股票代码
+        :param start: 时间戳/倒序
+        :param end: 时间戳/倒序
+        :return:  Reply 对象。
+        """
+
+        if len(code) != 10:
+            raise ValueError("Code must be 10 characters long and start with 'USHA' or 'USZA'.")
+
+        instance = rand_instance(8)
+        zipVersion = ZipVersion
+        data_type = "1,5,10,12,18,49"
+        market = code[:4]
+        short_code = code[4:]
+        req = f"id=205&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}&TraceDetail=0"
+        response = self.quotelib.query_data(req)
+        if response == "" or response is None or response == b'':
+            raise ValueError("No data found." + req)
+
+        reply = Reply(response)
+        reply.convert_data()
+
+        return reply
+
+    def get_super_transaction_data(self, code: str, start: int, end: int):
+        """
+        获取股票3秒超级盘口数据，带委托档位
+        :param code: 股票代码
+        :param start: 时间戳
+        :param end: 时间戳
+        :return:  Reply 对象。
+        """
+        if start >= end:
+            raise ValueError("Start timestamp must be less than end timestamp.")
+
+        if len(code) != 10:
+            raise ValueError("Code must be 10 characters long and start with 'USHA' or 'USZA'.")
+
+        instance = rand_instance(8)
+        zipVersion = ZipVersion
+        data_type = "1,5,7,10,12,13,14,18,19,20,21,25,26,27,28,29,31,32,33,34,35,49,69,70,92,123,125,150,151,152,153,154,155,156,157,45,66,661,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,123,125"
+        market = code[:4]
+        short_code = code[4:]
+        req = f"id=205&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}&TraceDetail=0"
+        response = self.quotelib.query_data(req)
+        if response == "" or response is None or response == b'':
+            raise ValueError("No data found." + req)
+
+        reply = Reply(response)
+        reply.convert_data()
+
+        return reply
+
+    def get_l2_transaction_data(self, code: str, start: int, end: int):
+        """
+        获取股票l2成交数据
+        :param code: 股票代码
+        :param start: 时间戳
+        :param end: 时间戳
+        :return:  Reply 对象。
+        """
+
+        if len(code) != 10:
+            raise ValueError("Code must be 10 characters long and start with 'USHA' or 'USZA'.")
+
+        instance = rand_instance(8)
+        zipVersion = ZipVersion
+        data_type = "5,10,12,13"
+        market = code[:4]
+        short_code = code[4:]
+        req = f"id=220&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}"
+        response = self.quotelib.query_data(req)
+        if response == "" or response is None or response == b'':
+            raise ValueError("No data found." + req)
 
         reply = Reply(response)
         reply.convert_data()

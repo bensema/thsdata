@@ -9,9 +9,18 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
 
-VERSION = '0.0.16'
+VERSION = '0.0.27'
 DESCRIPTION = 'a python package for ... '
 LONG_DESCRIPTION = ' a python package for ...  '
+
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+extra_files = package_files('libs')
 
 # Setting up
 setup(
@@ -23,6 +32,8 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     packages=find_packages(),
+    package_data={'': extra_files},
+    include_package_data=True,
     install_requires=[],
     keywords=['python','thsdata'],
     classifiers=[

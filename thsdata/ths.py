@@ -1,5 +1,6 @@
 from .quote_lib import QuoteLib
 from .util import *
+from .guest import rand_account
 from .model import Reply
 from .constants import *
 import re
@@ -10,6 +11,13 @@ ZipVersion = "2"
 
 class ThsQuote:
     def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        key1 = 'u' + 'ser' + 'na' + 'me'
+        key2 = 'pas' + 'swo' + 'rd'
+        if key1 not in config or key2 not in config:
+            _k1, _o2 = rand_account()
+            config[key1] = _k1
+            config[key2] = _o2
+
         self.lib = QuoteLib(config, lib_path)
         self.debug = debug
 
@@ -267,3 +275,35 @@ class ThsQuote:
         reply.convert_data()
 
         return reply
+
+
+class ZhuThsQuote(ThsQuote):
+    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        if 'addr' not in config:
+            config['addr'] = zhu_addr
+
+        super().__init__(config, lib_path, debug)
+
+
+class FuThsQuote(ThsQuote):
+    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        if 'addr' not in config:
+            config['addr'] = fu_addr
+
+        super().__init__(config, lib_path, debug)
+
+
+class InfoThsQuote(ThsQuote):
+    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        if 'addr' not in config:
+            config['addr'] = info_addr
+
+        super().__init__(config, lib_path, debug)
+
+
+class BlockThsQuote(ThsQuote):
+    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        if 'addr' not in config:
+            config['addr'] = block_addr
+
+        super().__init__(config, lib_path, debug)

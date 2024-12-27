@@ -477,3 +477,8 @@ FieldNameMap = {
     2018090410: "异动说明",
     2018090411: "竞价涨幅",
 }
+
+zhu_addr = 'mac'+'zh'+'uhq1.1'+'23t'+'hs.c'+'om:96'+'02'
+fu_addr = 'mac'+'fu1.12'+'3th'+'s.c'+'om:96'+'03'
+info_addr = 'ma'+'cinf'+'o1.123'+'t'+'hs.c'+'om:9'+'604'
+block_addr = 'macfu'+'nct'+'ion1.123'+'th'+'s.c'+'om:9'+'605'

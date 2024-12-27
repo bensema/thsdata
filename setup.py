@@ -8,19 +8,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
-
-VERSION = '0.0.27'
-DESCRIPTION = 'a python package for ... '
-LONG_DESCRIPTION = ' a python package for ...  '
-
-def package_files(directory):
-    paths = []
-    for (path, directories, filenames) in os.walk(directory):
-        for filename in filenames:
-            paths.append(os.path.join('..', path, filename))
-    return paths
-
-extra_files = package_files('libs')
+VERSION = '0.0.37'
+DESCRIPTION = 'a python package for ths data '
+LONG_DESCRIPTION = ' a python package for ths data  '
 
 # Setting up
 setup(
@@ -31,11 +21,10 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=long_description,
-    packages=find_packages(),
-    package_data={'': extra_files},
+    packages=find_packages(where='.', exclude=(), include=('*',)),
     include_package_data=True,
     install_requires=[],
-    keywords=['python','thsdata'],
+    keywords=['python', 'thsdata'],
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",
@@ -43,5 +32,9 @@ setup(
         "Operating System :: Unix",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
-    ]
+    ],
+    install_package_data=True,
+    package_data={
+        'thsdata': ['*.so', '*.h', '*'],
+    },
 )

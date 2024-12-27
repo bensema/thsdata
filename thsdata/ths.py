@@ -9,14 +9,21 @@ ZipVersion = "2"
 
 
 class ThsQuote:
-    def __init__(self, quotelib):
-        # 默认值是None，这样你可以传入一个 QuoteLib 实例
-        if quotelib is None:
-            self.quotelib = None
-        elif isinstance(quotelib, QuoteLib):
-            self.quotelib = quotelib
+    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+        self.lib = QuoteLib(config, lib_path)
+        self.debug = debug
+
+    def connect(self):
+        if self.lib.connect() == 0:
+            if self.debug:
+                print("Connected successfully")
         else:
-            raise TypeError("quotelib must be an instance of QuoteLib")
+            if self.debug:
+                print("Failed to connect")
+            raise SystemExit
+
+    def disconnect(self):
+        self.lib.disconnect()
 
     def history_minute_time_data(self, code: str, date: str, fields: list = None):
         # 检查code的长度和前四位         # if len(code) != 10 or not (code.startswith('USHA') or code.startswith('USZA')):
@@ -33,7 +40,7 @@ class ThsQuote:
         market = code[:4]
         short_code = code[4:]
         req = f"id=207&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&datatype={data_type}&date={date}"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
 
@@ -81,7 +88,7 @@ class ThsQuote:
         market = code[:4]
         short_code = code[4:]
         req = f"id=210&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&fuquan={fuquan}&datatype={data_type}&period={period}"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
 
@@ -153,7 +160,7 @@ class ThsQuote:
         instance = rand_instance(8)
         zipVersion = ZipVersion
         req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&blockid={block_id:x}&reqflag=blockserver"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
 
@@ -169,7 +176,7 @@ class ThsQuote:
         instance = rand_instance(8)
         zipVersion = ZipVersion
         req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&linkcode={block_code}"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
 
@@ -196,7 +203,7 @@ class ThsQuote:
         market = code[:4]
         short_code = code[4:]
         req = f"id=205&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}&TraceDetail=0"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No data found." + req)
 
@@ -225,7 +232,7 @@ class ThsQuote:
         market = code[:4]
         short_code = code[4:]
         req = f"id=205&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}&TraceDetail=0"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No data found." + req)
 
@@ -252,7 +259,7 @@ class ThsQuote:
         market = code[:4]
         short_code = code[4:]
         req = f"id=220&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&datatype={data_type}"
-        response = self.quotelib.query_data(req)
+        response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No data found." + req)
 

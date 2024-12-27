@@ -1,0 +1,6 @@
+
+
+thsdata/*.so
+thsdata/*.dylib
+thsdata/*.dll
+thsdata/*.h

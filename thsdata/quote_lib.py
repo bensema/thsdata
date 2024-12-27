@@ -1,23 +1,28 @@
 import ctypes
 import os
 import platform
+import json
 
 
 class QuoteLib:
-    def __init__(self, lib_path,config):
-        # lib_path = self._get_lib_path()
-        self.lib = ctypes.CDLL(lib_path)
+    def __init__(self, config: dict = (), lib_path: str = ""):
+        if lib_path == "":
+            self.__lib_path = self._get_lib_path()
+        else:
+            self.__lib_path = lib_path
+
+        self.lib = ctypes.CDLL(self.__lib_path)
         self._define_functions()
-        self.lib.NewQuote(config.encode('utf-8'))
+        self.lib.NewQuote(json.dumps(config).encode('utf-8'))
 
     def _get_lib_path(self):
         system = platform.system()
         if system == 'Linux':
-            lib_path = os.path.join(os.path.dirname(__file__), '..', 'libs', 'linux', 'libquote.so')
+            lib_path = os.path.join(os.path.dirname(__file__), 'libquote.so')
         elif system == 'Darwin':
-            lib_path = os.path.join(os.path.dirname(__file__), '..', 'libs', 'macos', 'libquote.dylib')
+            lib_path = os.path.join(os.path.dirname(__file__), 'libquote.dylib')
         elif system == 'Windows':
-            lib_path = os.path.join(os.path.dirname(__file__), '..', 'libs', 'windows', 'libquote.dll')
+            lib_path = os.path.join(os.path.dirname(__file__), 'libquote.dll')
         else:
             raise OSError('Unsupported operating system')
         return lib_path
@@ -38,8 +43,8 @@ class QuoteLib:
         self.lib.QueryData.argtypes = [ctypes.c_char_p]
         self.lib.QueryData.restype = ctypes.c_char_p
 
-    def new_quote(self, config):
-        self.lib.NewQuote(config.encode('utf-8'))
+    # def new_quote(self, config: str = ""):
+    #     self.lib.NewQuote(config.encode('utf-8'))
 
     def connect(self):
         return self.lib.Connect()
@@ -47,11 +52,11 @@ class QuoteLib:
     def disconnect(self):
         return self.lib.DisConnect()
 
-    def write(self, req):
+    def write(self, req: str = ""):
         return self.lib.Write(req.encode('utf-8'))
 
     def read(self):
         return self.lib.Read()
 
-    def query_data(self, req):
+    def query_data(self, req: str = ""):
         return self.lib.QueryData(req.encode('utf-8'))

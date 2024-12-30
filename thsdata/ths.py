@@ -1,7 +1,7 @@
 from .quote_lib import QuoteLib
 from .util import *
 from .guest import rand_account
-from .model import Reply
+from .model import Reply, LoginReply
 from .constants import *
 import re
 import datetime
@@ -10,29 +10,56 @@ ZipVersion = "2"
 
 
 class ThsQuote:
-    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
+    def __init__(self, ops: dict = None):
+        if ops is None:
+            ops = {}
         key1 = 'u' + 'ser' + 'na' + 'me'
         key2 = 'pas' + 'swo' + 'rd'
-        if key1 not in config or key2 not in config:
+        if key1 not in ops or key2 not in ops:
             _k1, _o2 = rand_account()
-            config[key1] = _k1
-            config[key2] = _o2
+            ops[key1] = _k1
+            ops[key2] = _o2
 
-        self.lib = QuoteLib(config, lib_path)
-        self.debug = debug
+        if 'debug' in ops:
+            debug_value = ops.pop('debug')
+            if isinstance(debug_value, bool):
+                self.debug = debug_value
+            else:
+                # Convert to boolean (if it's a string like 'True'/'False', or other cases)
+                self.debug = str(debug_value).lower() in ['true', '1', 'yes']
+        else:
+            self.debug = False  # Default value if 'debug' is not provided
+
+        self.lib = QuoteLib(ops)
+        self._login = False
+
+    @staticmethod
+    def login_required(func):
+        def wrapper(self, *args, **kwargs):
+            if not self._login:
+                print("请先登录.")
+                reply = Reply("{}")
+                return reply
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
     def connect(self):
+        rs = LoginReply()
         if self.lib.connect() == 0:
-            if self.debug:
-                print("Connected successfully")
+            rs.code = 0
+            rs.message = "登录成功"
+            self._login = True
         else:
-            if self.debug:
-                print("Failed to connect")
-            raise SystemExit
+            rs.code = -1
+            rs.message = "登录失败"
+        return rs
 
     def disconnect(self):
+        self._login = False
         self.lib.disconnect()
 
+    @login_required
     def history_minute_time_data(self, code: str, date: str, fields: list = None):
         # 检查code的长度和前四位         # if len(code) != 10 or not (code.startswith('USHA') or code.startswith('USZA')):
         if len(code) != 10:
@@ -43,11 +70,11 @@ class ThsQuote:
             raise ValueError("Date must be in the format YYYYMMDD, e.g. 20241220.")
 
         instance = rand_instance(8)
-        zipVersion = ZipVersion
+        zip_version = ZipVersion
         data_type = "1,10,13,19,40"
         market = code[:4]
         short_code = code[4:]
-        req = f"id=207&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&datatype={data_type}&date={date}"
+        req = f"id=207&instance={instance}&zipversion={zip_version}&code={short_code}&market={market}&datatype={data_type}&date={date}"
         response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
@@ -64,6 +91,7 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def security_bars(self, code: str, start: int, end: int, fuquan: str, period: int):
         """
         获取证券条数据。
@@ -85,17 +113,17 @@ class ThsQuote:
         if period not in valid_periods:
             raise ValueError("Invalid period.")
 
-        mPeriod = {Kline1m, Kline5m, Kline15m, Kline30m, Kline60m, Kline120m}
+        m_period = {Kline1m, Kline5m, Kline15m, Kline30m, Kline60m, Kline120m}
 
         if len(code) != 10:
             raise ValueError("Code must be 10 characters long and start with 'USHA' or 'USZA'.")
 
         instance = rand_instance(8)
-        zipVersion = ZipVersion
+        zip_version = ZipVersion
         data_type = "1,7,8,9,11,13,19"
         market = code[:4]
         short_code = code[4:]
-        req = f"id=210&instance={instance}&zipversion={zipVersion}&code={short_code}&market={market}&start={start}&end={end}&fuquan={fuquan}&datatype={data_type}&period={period}"
+        req = f"id=210&instance={instance}&zipversion={zip_version}&code={short_code}&market={market}&start={start}&end={end}&fuquan={fuquan}&datatype={data_type}&period={period}"
         response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
@@ -103,7 +131,7 @@ class ThsQuote:
         reply = Reply(response)
         reply.convert_data()
 
-        if period in mPeriod:
+        if period in m_period:
             for entry in reply.data:
                 if "time" in entry:  # 检查是否存在 "time" 键
                     entry["time"] = ths_int2time(entry["time"])
@@ -114,6 +142,7 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def get_block_data(self, block_id: int):
         """
         :param block_id: 板块代码，必须是有效的板块代码。
@@ -166,8 +195,8 @@ class ThsQuote:
             raise ValueError("Block Id must be provided.")
 
         instance = rand_instance(8)
-        zipVersion = ZipVersion
-        req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&blockid={block_id:x}&reqflag=blockserver"
+        zip_version = ZipVersion
+        req = f"id=7&instance={instance}&zipversion={zip_version}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&blockid={block_id:x}&reqflag=blockserver"
         response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
@@ -177,13 +206,14 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def get_block_components(self, block_code: str):
         if not block_code:
             raise ValueError("Block code must be provided.")
 
         instance = rand_instance(8)
-        zipVersion = ZipVersion
-        req = f"id=7&instance={instance}&zipversion={zipVersion}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&linkcode={block_code}"
+        zip_version = ZipVersion
+        req = f"id=7&instance={instance}&zipversion={zip_version}&sortbegin=0&sortcount=0&sortorder=D&sortid=55&linkcode={block_code}"
         response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No sector components data found.")
@@ -193,6 +223,7 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def get_transaction_data(self, code: str, start: int, end: int):
         """
         获取股票3秒tick成交数据
@@ -220,6 +251,7 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def get_super_transaction_data(self, code: str, start: int, end: int):
         """
         获取股票3秒超级盘口数据，带委托档位
@@ -249,6 +281,7 @@ class ThsQuote:
 
         return reply
 
+    @login_required
     def get_l2_transaction_data(self, code: str, start: int, end: int):
         """
         获取股票l2成交数据
@@ -276,34 +309,63 @@ class ThsQuote:
 
         return reply
 
+    @login_required
+    def query_data(self, req: str, ):
+        response = self.lib.query_data(req)
+        if response == "" or response is None or response == b'':
+            raise ValueError("No data found." + req)
 
-class ZhuThsQuote(ThsQuote):
-    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
-        if 'addr' not in config:
-            config['addr'] = zhu_addr
+        reply = Reply(response)
+        reply.convert_data()
 
-        super().__init__(config, lib_path, debug)
-
-
-class FuThsQuote(ThsQuote):
-    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
-        if 'addr' not in config:
-            config['addr'] = fu_addr
-
-        super().__init__(config, lib_path, debug)
+        return reply
 
 
-class InfoThsQuote(ThsQuote):
-    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
-        if 'addr' not in config:
-            config['addr'] = info_addr
+class BaseThsQuote(ThsQuote):
+    def __init__(self, username: str = "", password: str = "", token: str = "", ops: dict = None):
+        if ops is None:
+            ops = {}
+        ops['token'] = token
+        if username != "" and password != "":
+            ops['username'] = username
+            ops['password'] = password
+        if 'addr' not in ops:
+            ops['addr'] = block_addr
 
-        super().__init__(config, lib_path, debug)
+        super().__init__(ops)
 
 
-class BlockThsQuote(ThsQuote):
-    def __init__(self, config: dict = (), lib_path: str = "", debug: bool = False):
-        if 'addr' not in config:
-            config['addr'] = block_addr
+class ZhuThsQuote(BaseThsQuote):
+    def __init__(self, token: str = "", username: str = "", password: str = "", ops: dict = None):
+        if ops is None:
+            ops = {}
+        if 'addr' not in ops:
+            ops['addr'] = zhu_addr
+        super().__init__(username, password, token, ops)
 
-        super().__init__(config, lib_path, debug)
+
+class FuThsQuote(BaseThsQuote):
+    def __init__(self, token: str = "", username: str = "", password: str = "", ops: dict = None):
+        if ops is None:
+            ops = {}
+        if 'addr' not in ops:
+            ops['addr'] = fu_addr
+        super().__init__(username, password, token, ops)
+
+
+class InfoThsQuote(BaseThsQuote):
+    def __init__(self, token: str = "", username: str = "", password: str = "", ops: dict = None):
+        if ops is None:
+            ops = {}
+        if 'addr' not in ops:
+            ops['addr'] = info_addr
+        super().__init__(username, password, token, ops)
+
+
+class BlockThsQuote(BaseThsQuote):
+    def __init__(self, token: str = "", username: str = "", password: str = "", ops: dict = None):
+        if ops is None:
+            ops = {}
+        if 'addr' not in ops:
+            ops['addr'] = block_addr
+        super().__init__(username, password, token, ops)

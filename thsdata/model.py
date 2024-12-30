@@ -21,3 +21,9 @@ class Reply:
             self.data = []
 
         self.data = convert_data_keys(self.data)
+
+
+class LoginReply:
+    def __init__(self):
+        self.code = -1
+        self.message = "未知错误"

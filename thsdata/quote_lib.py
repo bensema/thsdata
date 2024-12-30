@@ -5,15 +5,15 @@ import json
 
 
 class QuoteLib:
-    def __init__(self, config: dict = (), lib_path: str = ""):
-        if lib_path == "":
-            self.__lib_path = self._get_lib_path()
+    def __init__(self, ops: dict = ()):
+        if 'lib_path' in ops and ops['lib_path'] != "":
+            self.__lib_path = ops.pop('lib_path')
         else:
-            self.__lib_path = lib_path
+            self.__lib_path = self._get_lib_path()
 
         self.lib = ctypes.CDLL(self.__lib_path)
         self._define_functions()
-        self.lib.NewQuote(json.dumps(config).encode('utf-8'))
+        self.lib.NewQuote(json.dumps(ops).encode('utf-8'))
 
     def _get_lib_path(self):
         system = platform.system()

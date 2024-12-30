@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     long_description = "\n" + fh.read()
 
-VERSION = '0.0.38'
+VERSION = '0.0.41'
 DESCRIPTION = 'a python package for ths data '
 LONG_DESCRIPTION = ' a python package for ths data  '
 

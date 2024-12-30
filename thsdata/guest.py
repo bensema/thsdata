@@ -50,5 +50,3 @@ def rand_account():
     account = random.choice(parts).split("@")
     return account[0], account[1]
 
-username, pwd = rand_account()
-print(f"用户名: {username}, 密码: {pwd}")

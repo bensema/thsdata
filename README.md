@@ -17,8 +17,8 @@ from thsdata.constants import *
 quote = ZhuThsQuote()
 
 login_reply = quote.connect()
-if login_reply.err != 0:
-    print(f"登录错误:{login_reply.err}, 信息:{login_reply.err_message}")
+if login_reply.err_code != 0:
+    print(f"登录错误:{login_reply.err_code}, 信息:{login_reply.err_message}")
     sys.exit(0)
 else:
     print("Connected successfully")
@@ -26,8 +26,8 @@ else:
 
 reply = quote.security_bars("USHA600519",20031201,20241231,FuquanNo, KlineDay)
 
-if reply.err != 0:
-    print(f"查询错误:{reply.err}, 信息:{reply.err_message}")
+if reply.err_code != 0:
+    print(f"查询错误:{reply.err_code}, 信息:{reply.err_message}")
     sys.exit(0)
 
 

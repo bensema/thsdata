@@ -21,8 +21,10 @@ class QuoteLib:
             lib_path = os.path.join(os.path.dirname(__file__), 'libquote.so')
         elif system == 'Darwin':
             lib_path = os.path.join(os.path.dirname(__file__), 'libquote.dylib')
-        elif system == 'Windows':
-            lib_path = os.path.join(os.path.dirname(__file__), 'libquote.dll')
+
+        # todo windows找时间再生成dll
+        # elif system == 'Windows':
+        #     lib_path = os.path.join(os.path.dirname(__file__), 'libquote.dll')
         else:
             raise OSError('Unsupported operating system')
         return lib_path
@@ -31,12 +33,12 @@ class QuoteLib:
         self.lib.NewQuote.argtypes = [ctypes.c_char_p]
         self.lib.NewQuote.restype = None
 
-        self.lib.Connect.restype = ctypes.c_int
+        self.lib.Connect.restype = ctypes.c_char_p
 
         self.lib.DisConnect.restype = ctypes.c_int
 
         self.lib.Write.argtypes = [ctypes.c_char_p]
-        self.lib.Write.restype = ctypes.c_int
+        self.lib.Write.restype = ctypes.c_char_p
 
         self.lib.Read.restype = ctypes.c_char_p
 

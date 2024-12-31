@@ -12,6 +12,8 @@ class Reply:
         self.dicExt = data_dict.get('dicExt', {})
         self.ext = data_dict.get('ext', None)
         self.head = data_dict.get('head', {})
+        self.err_code = data_dict.get('err', 0)
+        self.err_message = data_dict.get('err_message', "")
 
     def __repr__(self):
         return f"Reply(data={self.data}, dicExt={self.dicExt}, ext={self.ext}, head={self.head})"
@@ -22,8 +24,3 @@ class Reply:
 
         self.data = convert_data_keys(self.data)
 
-
-class LoginReply:
-    def __init__(self):
-        self.code = -1
-        self.message = "未知错误"

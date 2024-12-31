@@ -1,7 +1,7 @@
 from .quote_lib import QuoteLib
 from .util import *
 from .guest import rand_account
-from .model import Reply, LoginReply
+from .model import Reply
 from .constants import *
 import re
 import datetime
@@ -13,8 +13,8 @@ class ThsQuote:
     def __init__(self, ops: dict = None):
         if ops is None:
             ops = {}
-        key1 = 'u' + 'ser' + 'na' + 'me'
-        key2 = 'pas' + 'swo' + 'rd'
+        key1 = "username"
+        key2 = "password"
         if key1 not in ops or key2 not in ops:
             _k1, _o2 = rand_account()
             ops[key1] = _k1
@@ -30,6 +30,7 @@ class ThsQuote:
         else:
             self.debug = False  # Default value if 'debug' is not provided
 
+        self.ops = ops
         self.lib = QuoteLib(ops)
         self._login = False
 
@@ -45,14 +46,13 @@ class ThsQuote:
         return wrapper
 
     def connect(self):
-        rs = LoginReply()
-        if self.lib.connect() == 0:
-            rs.code = 0
-            rs.message = "登录成功"
+        response = self.lib.connect()
+        if response == "" or response is None or response == b'':
+            raise ValueError("No data found.")
+
+        rs = Reply(response)
+        if rs.err_code == 0:
             self._login = True
-        else:
-            rs.code = -1
-            rs.message = "登录失败"
         return rs
 
     def disconnect(self):

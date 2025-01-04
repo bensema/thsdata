@@ -92,14 +92,14 @@ class ThsQuote:
         return reply
 
     @login_required
-    def security_bars(self, code: str, start: int, end: int, fuquan: str, period: int):
+    def security_bars(self, code: str, start: int, end: int, adjust: str, period: int):
         """
         获取证券条数据。
 
         :param code: 证券代码，必须是10个字符长，并以'USHA'或'USZA'开头。
         :param start: 开始时间，格式取决于周期。对于日级别，使用日期（例如，20241224）。对于分钟级别，使用时间戳。
         :param end: 结束时间，格式取决于周期。对于日级别，使用日期（例如，20241224）。对于分钟级别，使用时间戳。
-        :param fuquan: 复权类型，必须是有效的复权值之一。
+        :param adjust: 复权类型，必须是有效的复权值之一。
         :param period: 周期类型，必须是有效的周期值之一。
         """
 
@@ -107,8 +107,8 @@ class ThsQuote:
         valid_periods = {Kline1m, Kline5m, Kline15m, Kline30m, Kline60m, Kline120m, KlineDay, KlineWeek, KlineMoon,
                          KlineQuarterly, KlineYear}
 
-        if fuquan not in valid_fuquan:
-            raise ValueError("Invalid fuquan.")
+        if adjust not in valid_fuquan:
+            raise ValueError("Invalid adjust.")
 
         if period not in valid_periods:
             raise ValueError("Invalid period.")
@@ -123,7 +123,7 @@ class ThsQuote:
         data_type = "1,7,8,9,11,13,19"
         market = code[:4]
         short_code = code[4:]
-        req = f"id=210&instance={instance}&zipversion={zip_version}&code={short_code}&market={market}&start={start}&end={end}&fuquan={fuquan}&datatype={data_type}&period={period}"
+        req = f"id=210&instance={instance}&zipversion={zip_version}&code={short_code}&market={market}&start={start}&end={end}&fuquan={adjust}&datatype={data_type}&period={period}"
         response = self.lib.query_data(req)
         if response == "" or response is None or response == b'':
             raise ValueError("No history data found.")
@@ -193,6 +193,11 @@ class ThsQuote:
         """
         if not block_id:
             raise ValueError("Block Id must be provided.")
+
+        if 'addr' in self.ops:
+            addr = self.ops['addr']
+            if addr != block_addr:
+                raise ValueError("Block data can only be queried from block server.")
 
         instance = rand_instance(8)
         zip_version = ZipVersion
@@ -308,6 +313,62 @@ class ThsQuote:
         reply.convert_data()
 
         return reply
+
+    def query_ths_industry(self):
+        """
+        获取行业板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xCE5F)
+
+    def query_ths_sub_industry(self):
+        """
+        获取细分三级行业板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xc4b5)
+
+    def query_ths_concept(self):
+        """
+        获取概念板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xCE5E)
+
+    def query_ths_bond(self):
+        """
+        获取可转债板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xCE14)
+
+    def query_ths_index(self):
+        """
+        获取指数板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xD2)
+
+    def query_ths_etf(self):
+        """
+        获取ETF板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xCFF3)
+
+    def query_ths_etf_t0(self):
+        """
+        获取ETF T0板块
+
+        :return:  Reply 对象。
+        """
+        return self.get_block_data(0xD90C)
 
     @login_required
     def query_data(self, req: str, ):

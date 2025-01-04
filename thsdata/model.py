@@ -12,6 +12,7 @@ class Reply:
         self.dicExt = data_dict.get('dicExt', {})
         self.ext = data_dict.get('ext', None)
         self.head = data_dict.get('head', {})
+
         self.err_code = data_dict.get('err', 0)
         self.err_message = data_dict.get('err_message', "")
 

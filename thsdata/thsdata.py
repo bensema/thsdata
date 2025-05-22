@@ -16,7 +16,7 @@ import inspect
 import requests
 import datetime
 import pandas as pd
-from thsdk import THS, Adjust, Interval
+from thsdk import THS
 from typing import Any, List, Optional, Tuple
 from datetime import datetime, time
 
@@ -64,12 +64,53 @@ def _time_2_int(t: datetime) -> int:
     return dst
 
 
-class THSData:
-    def __init__(self, ops: dict = None):
-        self.ops = ops
-        self.hq = THS(self.ops)
+class Adjust:
+    """K线复权类型"""
+    FORWARD = "Q"  # 前复权
+    BACKWARD = "B"  # 后复权
+    NONE = ""  # 不复权
 
-        self.__share_instance = random.randint(80000000, 99999999)
+    @classmethod
+    def all_types(cls) -> List[str]:
+        """返回所有复权类型"""
+        return [cls.FORWARD, cls.BACKWARD, cls.NONE]
+
+
+class Interval:
+    """K线周期类型"""
+    MIN_1 = 0x3001  # 1分钟K线
+    MIN_5 = 0x3005  # 5分钟K线
+    MIN_15 = 0x300f  # 15分钟K线
+    MIN_30 = 0x301e  # 30分钟K线
+    MIN_60 = 0x303c  # 60分钟K线
+    MIN_120 = 0x3078  # 120分钟K线
+    DAY = 0x4000  # 日K线
+    WEEK = 0x5001  # 周K线
+    MONTH = 0x6001  # 月K线
+    QUARTER = 0x6003  # 季K线
+    YEAR = 0x7001  # 年K线
+
+    @classmethod
+    def minute_intervals(cls) -> List[int]:
+        """返回分钟级别周期"""
+        return [cls.MIN_1, cls.MIN_5, cls.MIN_15, cls.MIN_30, cls.MIN_60, cls.MIN_120]
+
+    @classmethod
+    def day_and_above_intervals(cls) -> List[int]:
+        """返回日及以上级别周期"""
+        return [cls.DAY, cls.WEEK, cls.MONTH, cls.QUARTER, cls.YEAR]
+
+    @classmethod
+    def all_types(cls) -> List[int]:
+        """返回所有周期类型"""
+        return cls.minute_intervals() + cls.day_and_above_intervals()
+
+
+class THSData:
+    def __init__(self, ops: dict = None, ths_class: Optional[Any] = None):
+        self.ops = ops
+        self.hq = ths_class(self.ops) if ths_class else THS(self.ops)
+        self.__share_instance = random.randint(6666666, 8888888)
 
     def __enter__(self):
         self.connect()
